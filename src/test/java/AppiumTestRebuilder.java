@@ -1,5 +1,7 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AppiumTestRebuilder {
 
@@ -18,16 +20,31 @@ public class AppiumTestRebuilder {
                     String command = st.substring(st.lastIndexOf('/') + 1);
                     System.out.println(st);
                     if (command.equals("element")) {
+                        String elementId = "";
                         String nextLine = br.readLine();
                         String clippedNextLine = nextLine.replaceAll(".*] ", "");
-                        commands.add(CommandBuilder.buildFindElement(clippedNextLine));
+                        while (!nextLine.contains("<--")) {
+                            if (nextLine.contains("200")) {
+                                Pattern pattern = Pattern.compile("\\b[0-9A-F]{8}\\b-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-\\b[0-9A-F]{12}\\b");
+                                Matcher matcher = pattern.matcher(nextLine);
+                                if (matcher.find())
+                                {
+                                    elementId = matcher.group(0);
+                                }
+                            }
+                            nextLine = br.readLine();
+                        }
+                        String finalCommand = CommandBuilder.buildFindElement(clippedNextLine, elementId);
+                        if (finalCommand!=null) {
+                            commands.add(finalCommand);
+                        }
                     }
                     if (command.equals("context")) {
                         if (requestType.equals("GET")) {
-                            commands.add(CommandBuilder.buildFindElement(CommandBuilder.buildGetContext()));
+                            commands.add(CommandBuilder.buildGetContext());
                         }
                         if (requestType.equals("POST")) {
-                            commands.add(CommandBuilder.buildFindElement(CommandBuilder.buildSetContext()));
+                            commands.add(CommandBuilder.buildSetContext());
                         }
                     }
                     if (command.equals("alert_text")) {
@@ -47,6 +64,22 @@ public class AppiumTestRebuilder {
                         if (requestType.equals("POST")) {
                             commands.add(CommandBuilder.buildDismissAlert());
                         }
+                    }
+                    if (command.equals("click")) {
+                        String nextLine = br.readLine();
+                        while (!nextLine.contains("<--")) {
+                            nextLine = br.readLine();
+                        }
+                        System.out.println(" "+nextLine);
+                        Pattern pattern = Pattern.compile("\\b[0-9A-F]{8}\\b-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-\\b[0-9A-F]{12}\\b");
+                        Matcher matcher = pattern.matcher(nextLine);
+                        String elementId = "";
+                        if (matcher.find())
+                        {
+                            elementId = matcher.group(0);
+                        }
+
+                        commands.add(CommandBuilder.buildClickElement(elementId));
                     }
                 }
             }
