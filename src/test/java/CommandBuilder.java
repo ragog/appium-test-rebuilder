@@ -3,18 +3,20 @@ import org.json.JSONObject;
 public class CommandBuilder {
 
     public static String buildFindElement(String rawCommandString) {
-//        {"using":"xpath","value":"//XCUIElementTypeButton[contains(@name, 'driverStatus')]"}
         JSONObject jsonObj = new JSONObject(rawCommandString);
         String strategy = (String)jsonObj.get("using");
         String value = (String)jsonObj.get("value");
-        return "driver.findElement(By." + strategy + "(\"" + value + "\");";
+        if (strategy.equals("class name")) {
+            strategy = "className";
+        }
+        return "driver.findElement(By." + strategy + "(\"" + value + "\"));";
     }
 
     public static String buildFindElements(String rawCommandString) {
         JSONObject jsonObj = new JSONObject(rawCommandString);
         String strategy = (String)jsonObj.get("using");
         String value = (String)jsonObj.get("value");
-        return "driver.findElements(By." + strategy + "(\"" + value + "\");";
+        return "driver.findElements(By." + strategy + "(\"" + value + "\"));";
     }
 
     public static String buildClickElement(String rawCommandString) {
