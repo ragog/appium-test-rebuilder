@@ -16,7 +16,6 @@ public class AppiumLogParser {
     private final String MARKER_RESPONSE = "<--";
     private final String RESPONSE_200 = "200";
 
-
     private boolean optionPrintRequests;
 
     public AppiumLogParser(HashMap<String, Boolean> options){
@@ -158,6 +157,21 @@ public class AppiumLogParser {
             String nextLine = br.readLine();
             String clippedNextLine = nextLine.replaceAll(".*] ", "");
             return CommandBuilder.buildInitSession(clippedNextLine);
+        }
+        if (command.equals("displayed")) {
+            String nextLine = br.readLine();
+            while (!nextLine.contains(MARKER_RESPONSE)) {
+                nextLine = br.readLine();
+            }
+            Pattern pattern = Pattern.compile(REGEX_UDID);
+            Matcher matcher = pattern.matcher(nextLine);
+            String elementId = "";
+            if (matcher.find()) {
+                elementId = matcher.group(0);
+            }
+
+            return CommandBuilder.buildIsDisplayed(elementId);
+
         }
 
         return "UnknownCommandPlaceholder";

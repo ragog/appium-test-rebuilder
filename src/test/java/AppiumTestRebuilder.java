@@ -7,13 +7,14 @@ public class AppiumTestRebuilder {
 
     public static void main(String args[]) throws IOException {
 
-        final boolean printRequests = false;
+        boolean optionPrintToFile;
 
         // Target logfile
         File logFile = new File("log.txt");
 
         HashMap<String, Boolean> options = new HashMap<>();
-        options.put("printRequests", false);
+        options.put("printRequests", true);
+//        options.put("printToFile", false); // TODO
 
         AppiumLogParser logParser = new AppiumLogParser(options);
         ArrayList<String> commands = logParser.extractCommands(logFile);

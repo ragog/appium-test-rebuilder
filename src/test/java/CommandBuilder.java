@@ -133,4 +133,15 @@ public class CommandBuilder {
         return "driver.manage().timeouts().implicitlyWait("+ ms +", TimeUnit.MILLISECONDS)";
     }
 
+    public static String buildIsDisplayed(String id) {
+        String elementName = "";
+
+        for (Element element : elementList) {
+            if (element.getId().equals(id)) {
+                elementName = element.getName();
+            }
+        }
+        return elementName + ".isDisplayed();";
+    }
+
 }
