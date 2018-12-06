@@ -129,7 +129,16 @@ public class AppiumLogParser {
             return CommandBuilder.buildClickElement(elementId);
         }
         if (command.equals("screenshot")) {
-            return CommandBuilder.buildGetScreenshot();
+            if (requestType.equals("GET")) {
+                return CommandBuilder.buildGetScreenshot();
+            }
+        }
+        if (command.equals("timeouts")) {
+            if (requestType.equals("POST")) {
+                String nextLine = br.readLine();
+                String clippedNextLine = nextLine.replaceAll(".*] ", "");
+                return CommandBuilder.buildTimeouts(clippedNextLine);
+            }
         }
         if (command.equals("session")) {
             String nextLine = br.readLine();

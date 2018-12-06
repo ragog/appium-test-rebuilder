@@ -2,7 +2,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 public class CommandBuilder {
@@ -120,13 +119,18 @@ public class CommandBuilder {
         }
 
         if (platform.equalsIgnoreCase("android")) {
-            command = capabilities + "AndroidDriver driver = new AndroidDriver(url, capabilities)";
+            command = capabilities + "AndroidDriver driver = new AndroidDriver(url, desiredCapabilities)"; // TODO URL
         } else if (platform.equalsIgnoreCase("ios")) {
-            command = capabilities + "IOSDriver driver = new IOSDriver(url, capabilities)";
+            command = capabilities + "IOSDriver driver = new IOSDriver(url, desiredCapabilities)"; // TODO URL
         }
 
         return command;
     }
 
+    public static String buildTimeouts(String rawCommandString) {
+        JSONObject elementJSON = new JSONObject(rawCommandString);
+        int ms = (int)elementJSON.get("ms");
+        return "driver.manage().timeouts().implicitlyWait("+ ms +", TimeUnit.MILLISECONDS)";
+    }
 
 }
