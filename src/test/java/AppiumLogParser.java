@@ -1,4 +1,7 @@
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,10 +64,29 @@ public class AppiumLogParser {
                 }
                 nextLine = br.readLine();
             }
-            String finalCommand = CommandBuilder.buildFindElement(clippedNextLine, elementId);
-            if (finalCommand!=null) {
-                return finalCommand;
+            return CommandBuilder.buildFindElement(clippedNextLine, elementId);
+        }
+
+        if (command.equals("value")) {
+            if (requestType.equals("POST")) {
+                String elementId = "";
+                String nextLine = br.readLine();
+                String clippedNextLine = nextLine.replaceAll(".*] ", "");
+                while (!nextLine.contains(MARKER_RESPONSE)) {
+                    nextLine = br.readLine();
+                }
+                Pattern pattern = Pattern.compile(REGEX_UDID);
+                Matcher matcher = pattern.matcher(nextLine);
+
+                if (matcher.find()) {
+                    elementId = matcher.group(0);
+                }
+
+                return CommandBuilder.buildSendKeys(elementId, clippedNextLine);
             }
+//            if (requestType.equals("POST")) {
+//                return CommandBuilder.buildSetContext();
+//            }
         }
 
         if (command.equals("context")) {
@@ -92,7 +114,8 @@ public class AppiumLogParser {
             if (requestType.equals("POST")) {
                 return CommandBuilder.buildDismissAlert();
             }
-        } else if (command.equals("click")) {
+        }
+        if (command.equals("click")) {
             String nextLine = br.readLine();
             while (!nextLine.contains(MARKER_RESPONSE)) {
                 nextLine = br.readLine();
@@ -106,6 +129,10 @@ public class AppiumLogParser {
 
             return CommandBuilder.buildClickElement(elementId);
         }
+        if (command.equals("screenshot")) {
+            return CommandBuilder.buildGetScreenshot();
+        }
+
         return "UnknownCommandPlaceholder";
     }
 }

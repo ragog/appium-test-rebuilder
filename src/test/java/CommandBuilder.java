@@ -1,3 +1,4 @@
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -54,7 +55,24 @@ public class CommandBuilder {
                 elementName = element.getName();
             }
         }
-        return elementName + ".click();"; // TODO
+        return elementName + ".click();";
+    }
+
+    public static String buildSendKeys(String id, String rawCommandString){
+
+        JSONObject elementJSON = new JSONObject(rawCommandString);
+        String appiumId = (String)elementJSON.get("id");
+        JSONArray values = (JSONArray)elementJSON.get("value");
+        String value = (String)values.get(0);
+
+        String elementName = "";
+
+        for (Element element : elementList) {
+            if (element.getId().equals(id)) {
+                elementName = element.getName();
+            }
+        }
+        return elementName + ".sendKeys(\"" + value + "\");";
     }
 
     public static String buildGetContext() {
@@ -79,6 +97,10 @@ public class CommandBuilder {
 
     public static String buildSetAlertText() {
         return ""; // TODO
+    }
+
+    public static String buildGetScreenshot() {
+        return "driver.getScreenshotAs(OutputType.BASE64);";
     }
 
 
