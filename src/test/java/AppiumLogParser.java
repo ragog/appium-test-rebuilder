@@ -1,8 +1,11 @@
+import com.sun.org.apache.xpath.internal.operations.Bool;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,6 +15,13 @@ public class AppiumLogParser {
     private final String MARKER_REQUEST = "-->";
     private final String MARKER_RESPONSE = "<--";
     private final String RESPONSE_200 = "200";
+
+
+    private boolean optionPrintRequests;
+
+    public AppiumLogParser(HashMap<String, Boolean> options){
+        optionPrintRequests = options.get("printRequests");
+    }
 
     public ArrayList<String> extractCommands(File logFile) throws IOException {
 
@@ -27,9 +37,13 @@ public class AppiumLogParser {
 
                     String command = st.substring(st.lastIndexOf('/') + 1);
                     String requestType = getRequestType(st);
-                    System.out.println(st);
 
-                    commands.add(consumeCommand(command, requestType, br));
+                    if (optionPrintRequests) { System.out.println(st); }
+
+                    String convertedCommand = consumeCommand(command, requestType, br);
+                    if (!convertedCommand.isEmpty()) {
+                        commands.add(convertedCommand);
+                    }
 
                 }
             }
@@ -89,11 +103,11 @@ public class AppiumLogParser {
         }
 
         if (command.equals("context")) {
-            if (requestType.equals("GET")) {
-                return CommandBuilder.buildGetContext();
-            }
             if (requestType.equals("POST")) {
                 return CommandBuilder.buildSetContext();
+            }
+            if (requestType.equals("GET")) {
+                return ""; // ignore
             }
         }
         if (command.equals("alert_text")) {

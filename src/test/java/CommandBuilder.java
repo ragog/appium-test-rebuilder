@@ -114,7 +114,7 @@ public class CommandBuilder {
         String capabilities = "DesiredCapabilities desiredCapabilities = new DesiredCapabilities()\n";
 
         for (String key : jsonMap.keySet()) {
-            String value = (String)jsonMap.get(key);
+            String value = jsonMap.get(key).toString();
             capabilities += "desiredCapabilities.setCapability(\"" + key + "\", \"" + value +"\");\n";
         }
 
