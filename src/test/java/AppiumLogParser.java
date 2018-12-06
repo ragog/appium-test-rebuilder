@@ -84,9 +84,8 @@ public class AppiumLogParser {
 
                 return CommandBuilder.buildSendKeys(elementId, clippedNextLine);
             }
-//            if (requestType.equals("POST")) {
-//                return CommandBuilder.buildSetContext();
-//            }
+
+            // TODO GET
         }
 
         if (command.equals("context")) {
@@ -131,6 +130,11 @@ public class AppiumLogParser {
         }
         if (command.equals("screenshot")) {
             return CommandBuilder.buildGetScreenshot();
+        }
+        if (command.equals("session")) {
+            String nextLine = br.readLine();
+            String clippedNextLine = nextLine.replaceAll(".*] ", "");
+            return CommandBuilder.buildInitSession(clippedNextLine);
         }
 
         return "UnknownCommandPlaceholder";

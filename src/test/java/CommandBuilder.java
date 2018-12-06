@@ -2,6 +2,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CommandBuilder {
 
@@ -101,6 +103,29 @@ public class CommandBuilder {
 
     public static String buildGetScreenshot() {
         return "driver.getScreenshotAs(OutputType.BASE64);";
+    }
+
+    public static String buildInitSession(String rawCommandString) {
+        JSONObject elementJSON = new JSONObject(rawCommandString);
+        JSONObject innerJSONElement = elementJSON.getJSONObject("desiredCapabilities");
+        String platform = (String)innerJSONElement.get("platformName");
+        String command = "";
+
+        Map<String, Object> jsonMap = innerJSONElement.toMap();
+        String capabilities = "DesiredCapabilities desiredCapabilities = new DesiredCapabilities()\n";
+
+        for (String key : jsonMap.keySet()) {
+            String value = (String)jsonMap.get(key);
+            capabilities += "desiredCapabilities.setCapability(\"" + key + "\", \"" + value +"\");\n";
+        }
+
+        if (platform.equalsIgnoreCase("android")) {
+            command = capabilities + "AndroidDriver driver = new AndroidDriver(url, capabilities)";
+        } else if (platform.equalsIgnoreCase("ios")) {
+            command = capabilities + "IOSDriver driver = new IOSDriver(url, capabilities)";
+        }
+
+        return command;
     }
 
 
