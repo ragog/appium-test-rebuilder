@@ -7,9 +7,9 @@ public class Element {
     private String strategy;
     private String strategyValue;
 
-    public Element(String id, String strategy, String strategyValue) {
+    public Element(String id, String name, String strategy, String strategyValue) {
         this.id = id;
-        this.name = RandomStringUtils.randomAlphabetic(8);
+        this.name = name;
         this.strategy = strategy;
         this.strategyValue = strategyValue;
     }

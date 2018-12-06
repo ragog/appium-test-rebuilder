@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class CommandBuilder {
 
     private static ArrayList<Element> elementList = new ArrayList<>();
+//    private static long elementCounter = 0;
 
     public static String buildFindElement(String rawCommandString, String elementId) {
         JSONObject jsonObj = new JSONObject(rawCommandString);
@@ -12,7 +13,7 @@ public class CommandBuilder {
         String value = (String)jsonObj.get("value");
         if (!elementList.isEmpty()) {
             if (!value.equals(elementList.get(elementList.size()-1).getStrategyValue())) { // skips if duplicate of previous command TODO less hacky
-                Element element = new Element(elementId, strategy, value);
+                Element element = new Element(elementId, "element"+elementList.size(), strategy, value);
                 elementList.add(element);
                 if (strategy.equals("class name")) {
                     strategy = "className";
@@ -20,7 +21,7 @@ public class CommandBuilder {
                 return "MobileElement " + element.getName() + " = driver.findElement(By." + strategy + "(\"" + value + "\"));";
             }
         } else {
-            Element element = new Element(elementId, strategy, value);
+            Element element = new Element(elementId, "element"+elementList.size(), strategy, value);
             elementList.add(element);
             if (strategy.equals("class name")) {
                 strategy = "className";

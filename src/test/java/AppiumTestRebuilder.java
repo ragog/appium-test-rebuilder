@@ -10,7 +10,7 @@ public class AppiumTestRebuilder {
         File file = new File("log.txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
 
-        ArrayList<String> commands = new ArrayList<String>();
+        ArrayList<String> commands = new ArrayList<>();
 
         String st;
         while ((st = br.readLine()) != null) {
