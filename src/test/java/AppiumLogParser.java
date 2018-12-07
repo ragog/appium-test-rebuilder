@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -79,6 +80,26 @@ public class AppiumLogParser {
                 nextLine = br.readLine();
             }
             return CommandBuilder.buildFindElement(clippedNextLine, elementId);
+        }
+
+        if (command.equals("elements")) {
+            List<String> elementIds = new ArrayList<>();
+            String nextLine = br.readLine();
+            String clippedNextLine = nextLine.replaceAll(".*] ", "");
+            while (!nextLine.contains(MARKER_RESPONSE)) {
+                if (nextLine.contains(RESPONSE_200)) {
+                    Pattern pattern = Pattern.compile(REGEX_ELEMENT_UDID);
+                    Matcher matcher = pattern.matcher(nextLine);
+                    if (matcher.find())
+                    {
+                        for (int i = 0; i<matcher.groupCount(); i++) {
+                            elementIds.add(matcher.group(i));
+                        }
+                    }
+                }
+                nextLine = br.readLine();
+            }
+            return CommandBuilder.buildFindElements(clippedNextLine, elementIds);
         }
 
         if (command.equals("value")) {

@@ -2,6 +2,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class CommandBuilder {
@@ -52,11 +53,21 @@ public class CommandBuilder {
 
     }
 
-    public static String buildFindElements(String rawCommandString) {
-        JSONObject jsonObj = new JSONObject(rawCommandString);
-        String strategy = (String)jsonObj.get("using");
-        String value = (String)jsonObj.get("value");
-        // TODO any way to create element to add to elementList?
+    public static String buildFindElements(String rawCommandString, List<String> elementIds) {
+        JSONObject jsonObject = new JSONObject(rawCommandString);
+        String strategy = (String)jsonObject.get("using");
+        String value = (String)jsonObject.get("value");
+
+        String elementName = "element" + elementList.size();
+
+        for (String elementId: elementIds) {
+            for (Element element : elementList) {
+                if (element.getId().equals(elementId)) {
+                    elementName = element.getName();
+                }
+            }
+            elementList.add(new Element(elementId, elementName, strategy, value));
+        }
 
         return "driver.findElements(By." + strategy + "(\"" + value + "\"));";
     }
