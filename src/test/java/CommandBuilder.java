@@ -169,4 +169,8 @@ public class CommandBuilder {
         return elementName + ".getAttribute(\"content-desc\");";
     }
 
+    public static String buildDeleteSessionCommand() {
+        return "driver.quit()";
+    }
+
 }

@@ -9,7 +9,8 @@ import java.util.regex.Pattern;
 
 public class AppiumLogParser {
 
-    private final String REGEX_UDID = "\\b[0-9A-F]{8}\\b-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-\\b[0-9A-F]{12}\\b";
+    private final String REGEX_ELEMENT_UDID = "\\b[0-9A-F]{8}\\b-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-\\b[0-9A-F]{12}\\b";
+    private final String REGEX_SESSION_UDID = "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b";
     private final String MARKER_REQUEST = "-->";
     private final String MARKER_RESPONSE = "<--";
     private final String RESPONSE_200 = "200";
@@ -30,18 +31,20 @@ public class AppiumLogParser {
 
             if (st.contains(MARKER_REQUEST)) {
 
-                if (!isGetSessionCommand(st)) { // Filters out getsession TODO find better way
+                String requestType = getRequestType(st);
+
+                if (!isGetSessionCommand(st) || requestType.equals("DELETE")) { // Filters out session calls apart form delete.. TODO find better way
 
                     String command = st.substring(st.lastIndexOf('/') + 1);
-                    String requestType = getRequestType(st);
 
-                    if (optionPrintRequests) { System.out.println(st); }
+                    if (optionPrintRequests) {
+                        System.out.println(st);
+                    }
 
                     String convertedCommand = consumeCommand(command, requestType, br);
                     if (!convertedCommand.isEmpty()) {
                         commands.add(convertedCommand);
                     }
-
                 }
             }
         }
@@ -66,7 +69,7 @@ public class AppiumLogParser {
             String clippedNextLine = nextLine.replaceAll(".*] ", "");
             while (!nextLine.contains(MARKER_RESPONSE)) {
                 if (nextLine.contains(RESPONSE_200)) {
-                    Pattern pattern = Pattern.compile(REGEX_UDID);
+                    Pattern pattern = Pattern.compile(REGEX_ELEMENT_UDID);
                     Matcher matcher = pattern.matcher(nextLine);
                     if (matcher.find())
                     {
@@ -145,7 +148,11 @@ public class AppiumLogParser {
             String elementId = fetchElementIdFromResponse(br);
             return CommandBuilder.buildAttributeName(elementId);
         }
-
+        if (command.matches(REGEX_SESSION_UDID)) {
+            if (requestType.equals("DELETE")) {
+                return CommandBuilder.buildDeleteSessionCommand();
+            }
+        }
         return "UnknownCommandPlaceholder";
     }
 
@@ -156,7 +163,7 @@ public class AppiumLogParser {
             nextLine = br.readLine();
         }
 
-        Pattern pattern = Pattern.compile(REGEX_UDID);
+        Pattern pattern = Pattern.compile(REGEX_ELEMENT_UDID);
         Matcher matcher = pattern.matcher(nextLine);
         String elementId = "";
         if (matcher.find()) {
