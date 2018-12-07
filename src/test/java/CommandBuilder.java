@@ -16,7 +16,14 @@ public class CommandBuilder {
 
         if (!elementList.isEmpty()) {
 
-            Element element = new Element(elementId, "element"+elementList.size(), strategy, value);
+            for (Element element : elementList) {
+                if (element.getId().equals(elementId)) {
+                    return element.getName() + " = driver.findElement(By." + strategy + "(\"" + value + "\");";
+                }
+            }
+
+            String elementName = "element" + elementList.size();
+            Element element = new Element(elementId, elementName, strategy, value);
             elementList.add(element);
 
             if (strategy.equals("class name")) { // one-off to take care of the selector TODO check for other selectors too
@@ -27,7 +34,14 @@ public class CommandBuilder {
 
         }
 
-        Element element = new Element(elementId, "element"+elementList.size(), strategy, value);
+        String elementName = "element"+elementList.size();;
+        for (Element element : elementList) {
+            if (element.getId().equals(elementId)) {
+                elementName = element.getName();
+            }
+        }
+
+        Element element = new Element(elementId, elementName, strategy, value);
         elementList.add(element);
 
         if (strategy.equals("class name")) {
@@ -142,6 +156,17 @@ public class CommandBuilder {
             }
         }
         return elementName + ".isDisplayed();";
+    }
+
+    public static String buildAttributeName(String id) {
+        String elementName = "";
+
+        for (Element element : elementList) {
+            if (element.getId().equals(id)) {
+                elementName = element.getName();
+            }
+        }
+        return elementName + ".getAttribute(\"content-desc\");";
     }
 
 }

@@ -1,5 +1,3 @@
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -82,19 +80,10 @@ public class AppiumLogParser {
 
         if (command.equals("value")) {
             if (requestType.equals("POST")) {
-                String elementId = "";
                 String nextLine = br.readLine();
                 String clippedNextLine = nextLine.replaceAll(".*] ", "");
-                while (!nextLine.contains(MARKER_RESPONSE)) {
-                    nextLine = br.readLine();
-                }
-                Pattern pattern = Pattern.compile(REGEX_UDID);
-                Matcher matcher = pattern.matcher(nextLine);
 
-                if (matcher.find()) {
-                    elementId = matcher.group(0);
-                }
-
+                String elementId = fetchElementIdFromResponse(br);
                 return CommandBuilder.buildSendKeys(elementId, clippedNextLine);
             }
 
@@ -128,17 +117,7 @@ public class AppiumLogParser {
             }
         }
         if (command.equals("click")) {
-            String nextLine = br.readLine();
-            while (!nextLine.contains(MARKER_RESPONSE)) {
-                nextLine = br.readLine();
-            }
-            Pattern pattern = Pattern.compile(REGEX_UDID);
-            Matcher matcher = pattern.matcher(nextLine);
-            String elementId = "";
-            if (matcher.find()) {
-                elementId = matcher.group(0);
-            }
-
+            String elementId = fetchElementIdFromResponse(br);
             return CommandBuilder.buildClickElement(elementId);
         }
         if (command.equals("screenshot")) {
@@ -159,21 +138,30 @@ public class AppiumLogParser {
             return CommandBuilder.buildInitSession(clippedNextLine);
         }
         if (command.equals("displayed")) {
-            String nextLine = br.readLine();
-            while (!nextLine.contains(MARKER_RESPONSE)) {
-                nextLine = br.readLine();
-            }
-            Pattern pattern = Pattern.compile(REGEX_UDID);
-            Matcher matcher = pattern.matcher(nextLine);
-            String elementId = "";
-            if (matcher.find()) {
-                elementId = matcher.group(0);
-            }
-
+            String elementId = fetchElementIdFromResponse(br);
             return CommandBuilder.buildIsDisplayed(elementId);
-
+        }
+        if (command.equals("name")) {
+            String elementId = fetchElementIdFromResponse(br);
+            return CommandBuilder.buildAttributeName(elementId);
         }
 
         return "UnknownCommandPlaceholder";
+    }
+
+    private String fetchElementIdFromResponse(BufferedReader br) throws IOException {
+
+        String nextLine = br.readLine();
+        while (!nextLine.contains(MARKER_RESPONSE)) {
+            nextLine = br.readLine();
+        }
+
+        Pattern pattern = Pattern.compile(REGEX_UDID);
+        Matcher matcher = pattern.matcher(nextLine);
+        String elementId = "";
+        if (matcher.find()) {
+            elementId = matcher.group(0);
+        }
+        return elementId;
     }
 }
