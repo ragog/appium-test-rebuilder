@@ -111,6 +111,17 @@ public class AppiumLogParser {
             // TODO GET
         }
 
+        if (command.equals("keys")) { // TODO distinguish between sendkeys and setvalue
+            if (requestType.equals("POST")) {
+                String nextLine = br.readLine();
+                String clippedNextLine = nextLine.replaceAll(".*] ", "");
+
+                String elementId = fetchElementIdFromResponse(br);
+                return CommandBuilder.buildSendKeys(elementId, clippedNextLine);
+            }
+
+        }
+
         if (command.equals("context")) {
             if (requestType.equals("POST")) {
                 return CommandBuilder.buildSetContext();
@@ -173,6 +184,16 @@ public class AppiumLogParser {
         if (command.equals("size")) {
             String elementId = fetchElementIdFromResponse(br);
             return CommandBuilder.buildSize(elementId);
+        }
+        if (command.equals("clear")) {
+            String elementId = fetchElementIdFromResponse(br);
+            return CommandBuilder.buildClear(elementId);
+        }
+        if (command.equals("perform")) {
+            String nextLine = br.readLine();
+            String clippedNextLine = nextLine.replaceAll(".*] ", "");
+
+            return CommandBuilder.buildTouchActionPerform(clippedNextLine);
         }
         if (command.matches(REGEX_SESSION_UDID)) {
             if (requestType.equals("DELETE")) {

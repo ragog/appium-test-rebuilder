@@ -181,6 +181,21 @@ public class CommandBuilder {
         return "driver.manage().timeouts().implicitlyWait("+ ms +", TimeUnit.MILLISECONDS)";
     }
 
+    public static String buildTouchActionPerform(String rawCommandString) {
+        JSONObject jsonObject = new JSONObject(rawCommandString);
+        JSONArray jsonArray = jsonObject.getJSONArray("actions");
+        JSONObject action = (JSONObject)jsonArray.get(0);
+        String actionField = (String)action.get("action");
+        if (!actionField.equals("tap")) {
+            return ""; // TODO handle all actions in chain + support all types of action
+        }
+        JSONObject optionsField = (JSONObject)action.get("options");
+        int coordinateX = (int)optionsField.get("x");
+        int coordinateY = (int)optionsField.get("y");
+
+        return "new TouchAction(driver).tap(new PointOption().withCoordinates("+coordinateX+", "+coordinateY+"));";
+    }
+
     public static String buildIsDisplayed(String id) {
         String elementName = "";
 
@@ -227,6 +242,17 @@ public class CommandBuilder {
             }
         }
         return elementName + ".getSize()";
+    }
+
+    public static String buildClear(String id) {
+        String elementName = "";
+
+        for (Element element : elementList) {
+            if (element.getId().equals(id)) {
+                elementName = element.getName();
+            }
+        }
+        return elementName + ".clear()";
     }
 
 }
