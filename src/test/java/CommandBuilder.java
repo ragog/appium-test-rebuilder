@@ -104,7 +104,7 @@ public class CommandBuilder {
             }
         }
 
-        return "list" + elementsList.size() + "[" + elementIndex + "].click();";
+        return "list" + elementsList.size() + ".get(" + elementIndex + ").click();";
 
     }
 
@@ -114,6 +114,10 @@ public class CommandBuilder {
         JSONArray values = (JSONArray)elementJSON.get("value");
         String value = (String)values.get(0);
 
+        if (id.isEmpty()) {
+            return "// sendKeys(\""+ value + "\"); on unknown element";
+        }
+
         String elementName = "";
 
         for (Element element : elementList) {
@@ -121,7 +125,22 @@ public class CommandBuilder {
                 elementName = element.getName();
             }
         }
-        return elementName + ".sendKeys(\"" + value + "\");";
+
+        if (!elementName.isEmpty()) {
+            return elementName + ".sendKeys(" + value + ");";
+        }
+
+        int elementIndex = -1;
+
+        for (ArrayList<Element> list : elementsList) {
+            for (int i = 0; i<list.size(); i++) {
+                if (list.get(i).getId().equals(id)) {
+                    elementIndex = i;
+                }
+            }
+        }
+
+        return "list" + elementsList.size() + ".get(" + elementIndex + ").sendKeys(" + value + ");";
     }
 
     public static String buildGetContext() {
