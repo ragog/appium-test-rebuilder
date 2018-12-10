@@ -140,7 +140,7 @@ public class CommandBuilder {
             }
         }
 
-        return "list" + elementsList.size() + ".get(" + elementIndex + ").sendKeys(" + value + ");";
+        return "list" + elementsList.size() + ".get(" + elementIndex + ").sendKeys(\"" + value + "\");";
     }
 
     public static String buildGetContext() {
@@ -178,7 +178,7 @@ public class CommandBuilder {
         String command = "";
 
         Map<String, Object> jsonMap = innerJSONElement.toMap();
-        String capabilities = "DesiredCapabilities desiredCapabilities = new DesiredCapabilities()\n";
+        String capabilities = "DesiredCapabilities desiredCapabilities = new DesiredCapabilities();\n";
 
         for (String key : jsonMap.keySet()) {
             String value = jsonMap.get(key).toString();
@@ -186,9 +186,9 @@ public class CommandBuilder {
         }
 
         if (platform.equalsIgnoreCase("android")) {
-            command = capabilities + "AndroidDriver driver = new AndroidDriver(url, desiredCapabilities)"; // TODO URL
+            command = capabilities + "AndroidDriver driver = new AndroidDriver(url, desiredCapabilities);"; // TODO URL
         } else if (platform.equalsIgnoreCase("ios")) {
-            command = capabilities + "IOSDriver driver = new IOSDriver(url, desiredCapabilities)"; // TODO URL
+            command = capabilities + "IOSDriver driver = new IOSDriver(url, desiredCapabilities);"; // TODO URL
         }
 
         return command;
@@ -197,7 +197,7 @@ public class CommandBuilder {
     public static String buildTimeouts(String rawCommandString) {
         JSONObject elementJSON = new JSONObject(rawCommandString);
         int ms = (int)elementJSON.get("ms");
-        return "driver.manage().timeouts().implicitlyWait("+ ms +", TimeUnit.MILLISECONDS)";
+        return "driver.manage().timeouts().implicitlyWait("+ ms +", TimeUnit.MILLISECONDS);";
     }
 
     public static String buildTouchActionPerform(String rawCommandString) {
@@ -238,7 +238,7 @@ public class CommandBuilder {
     }
 
     public static String buildDeleteSessionCommand() {
-        return "driver.quit()";
+        return "driver.quit();";
     }
 
     public static String buildLocation(String id) {
@@ -249,7 +249,7 @@ public class CommandBuilder {
                 elementName = element.getName();
             }
         }
-        return elementName + ".getLocation()";
+        return elementName + ".getLocation();";
     }
 
     public static String buildSize(String id) {
@@ -260,7 +260,7 @@ public class CommandBuilder {
                 elementName = element.getName();
             }
         }
-        return elementName + ".getSize()";
+        return elementName + ".getSize();";
     }
 
     public static String buildClear(String id) {
