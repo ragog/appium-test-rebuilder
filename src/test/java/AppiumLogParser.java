@@ -90,11 +90,8 @@ public class AppiumLogParser {
                 if (nextLine.contains(RESPONSE_200)) {
                     Pattern pattern = Pattern.compile(REGEX_ELEMENT_UDID);
                     Matcher matcher = pattern.matcher(nextLine);
-                    if (matcher.find())
-                    {
-                        for (int i = 0; i<matcher.groupCount(); i++) {
-                            elementIds.add(matcher.group(i));
-                        }
+                    while (matcher.find()) {
+                        elementIds.add(matcher.group(0));
                     }
                 }
                 nextLine = br.readLine();

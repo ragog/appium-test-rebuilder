@@ -8,6 +8,7 @@ import java.util.Map;
 public class CommandBuilder {
 
     private static ArrayList<Element> elementList = new ArrayList<>();
+    private static ArrayList<ArrayList<Element>> elementsList = new ArrayList<>();
 
     public static String buildFindElement(String rawCommandString, String elementId) {
 
@@ -54,6 +55,8 @@ public class CommandBuilder {
     }
 
     public static String buildFindElements(String rawCommandString, List<String> elementIds) {
+        ArrayList<Element> list = new ArrayList<>();
+
         JSONObject jsonObject = new JSONObject(rawCommandString);
         String strategy = (String)jsonObject.get("using");
         String value = (String)jsonObject.get("value");
@@ -66,10 +69,15 @@ public class CommandBuilder {
                     elementName = element.getName();
                 }
             }
-            elementList.add(new Element(elementId, elementName, strategy, value));
+
+             list.add(new Element(elementId, elementName, strategy, value));
+
         }
 
-        return "driver.findElements(By." + strategy + "(\"" + value + "\"));";
+        elementsList.add(list);
+
+        return "ArrayList<MobileElement> list" + elementsList.size() + " = driver.findElements(By." + strategy + "(\"" + value + "\"));"; // TODO not finished - get references to elements in list
+
     }
 
     public static String buildClickElement(String id) {
@@ -81,7 +89,23 @@ public class CommandBuilder {
                 elementName = element.getName();
             }
         }
-        return elementName + ".click();";
+
+        if (!elementName.isEmpty()) {
+            return elementName + ".click();";
+        }
+
+        int elementIndex = -1;
+
+        for (ArrayList<Element> list : elementsList) {
+            for (int i = 0; i<list.size(); i++) {
+                if (list.get(i).getId().equals(id)) {
+                    elementIndex = i;
+                }
+            }
+        }
+
+        return "list" + elementsList.size() + "[" + elementIndex + "].click();";
+
     }
 
     public static String buildSendKeys(String id, String rawCommandString){
