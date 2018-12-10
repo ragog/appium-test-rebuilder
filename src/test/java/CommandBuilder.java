@@ -36,7 +36,7 @@ public class CommandBuilder {
 
         }
 
-        String elementName = "element"+elementList.size();;
+        String elementName = "element"+elementList.size();
         for (Element element : elementList) {
             if (element.getId().equals(elementId)) {
                 elementName = element.getName();
@@ -80,15 +80,9 @@ public class CommandBuilder {
 
     }
 
-    public static String buildClickElement(String id) {
+    public static String buildClickElement(String elementId) {
 
-        String elementName = "";
-
-        for (Element element : elementList) {
-            if (element.getId().equals(id)) {
-                elementName = element.getName();
-            }
-        }
+        String elementName = fetchElementName(elementId);
 
         if (!elementName.isEmpty()) {
             return elementName + ".click();";
@@ -98,7 +92,7 @@ public class CommandBuilder {
 
         for (ArrayList<Element> list : elementsList) {
             for (int i = 0; i<list.size(); i++) {
-                if (list.get(i).getId().equals(id)) {
+                if (list.get(i).getId().equals(elementId)) {
                     elementIndex = i;
                 }
             }
@@ -108,23 +102,17 @@ public class CommandBuilder {
 
     }
 
-    public static String buildSendKeys(String id, String rawCommandString){
+    public static String buildSendKeys(String elementId, String rawCommandString){
 
         JSONObject elementJSON = new JSONObject(rawCommandString);
         JSONArray values = (JSONArray)elementJSON.get("value");
         String value = (String)values.get(0);
 
-        if (id.isEmpty()) {
+        if (elementId.isEmpty()) {
             return "// sendKeys(\""+ value + "\"); on unknown element";
         }
 
-        String elementName = "";
-
-        for (Element element : elementList) {
-            if (element.getId().equals(id)) {
-                elementName = element.getName();
-            }
-        }
+        String elementName = fetchElementName(elementId);
 
         if (!elementName.isEmpty()) {
             return elementName + ".sendKeys(" + value + ");";
@@ -134,7 +122,7 @@ public class CommandBuilder {
 
         for (ArrayList<Element> list : elementsList) {
             for (int i = 0; i<list.size(); i++) {
-                if (list.get(i).getId().equals(id)) {
+                if (list.get(i).getId().equals(elementId)) {
                     elementIndex = i;
                 }
             }
@@ -215,63 +203,39 @@ public class CommandBuilder {
         return "new TouchAction(driver).tap(new PointOption().withCoordinates("+coordinateX+", "+coordinateY+"));";
     }
 
-    public static String buildIsDisplayed(String id) {
-        String elementName = "";
-
-        for (Element element : elementList) {
-            if (element.getId().equals(id)) {
-                elementName = element.getName();
-            }
-        }
-        return elementName + ".isDisplayed();";
+    public static String buildIsDisplayed(String elementId) {
+        return fetchElementName(elementId) + ".isDisplayed();";
     }
 
-    public static String buildAttributeName(String id) {
-        String elementName = "";
-
-        for (Element element : elementList) {
-            if (element.getId().equals(id)) {
-                elementName = element.getName();
-            }
-        }
-        return elementName + ".getAttribute(\"content-desc\");";
+    public static String buildAttributeName(String elementId) {
+        return fetchElementName(elementId) + ".getAttribute(\"content-desc\");";
     }
 
     public static String buildDeleteSessionCommand() {
         return "driver.quit();";
     }
 
-    public static String buildLocation(String id) {
-        String elementName = "";
-
-        for (Element element : elementList) {
-            if (element.getId().equals(id)) {
-                elementName = element.getName();
-            }
-        }
-        return elementName + ".getLocation();";
+    public static String buildLocation(String elementId) {
+        return fetchElementName(elementId) +".getLocation();";
     }
 
-    public static String buildSize(String id) {
-        String elementName = "";
-
-        for (Element element : elementList) {
-            if (element.getId().equals(id)) {
-                elementName = element.getName();
-            }
-        }
-        return elementName + ".getSize();";
+    public static String buildSize(String elementId) {
+        return fetchElementName(elementId) + ".getSize();";
     }
 
-    public static String buildClear(String id) {
+    public static String buildClear(String elementId) {
+        return fetchElementName(elementId) + ".clear()";
+    }
+
+    public static String fetchElementName(String elementId) {
         String elementName = "";
 
         for (Element element : elementList) {
-            if (element.getId().equals(id)) {
+            if (element.getId().equals(elementId)) {
                 elementName = element.getName();
             }
         }
-        return elementName + ".clear()";
+        return elementName;
     }
 
 }
