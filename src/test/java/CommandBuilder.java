@@ -111,7 +111,6 @@ public class CommandBuilder {
     public static String buildSendKeys(String id, String rawCommandString){
 
         JSONObject elementJSON = new JSONObject(rawCommandString);
-        String appiumId = (String)elementJSON.get("id");
         JSONArray values = (JSONArray)elementJSON.get("value");
         String value = (String)values.get(0);
 
@@ -206,6 +205,28 @@ public class CommandBuilder {
 
     public static String buildDeleteSessionCommand() {
         return "driver.quit()";
+    }
+
+    public static String buildLocation(String id) {
+        String elementName = "";
+
+        for (Element element : elementList) {
+            if (element.getId().equals(id)) {
+                elementName = element.getName();
+            }
+        }
+        return elementName + ".getLocation()";
+    }
+
+    public static String buildSize(String id) {
+        String elementName = "";
+
+        for (Element element : elementList) {
+            if (element.getId().equals(id)) {
+                elementName = element.getName();
+            }
+        }
+        return elementName + ".getSize()";
     }
 
 }

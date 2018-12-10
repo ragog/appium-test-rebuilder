@@ -166,6 +166,14 @@ public class AppiumLogParser {
             String elementId = fetchElementIdFromResponse(br);
             return CommandBuilder.buildAttributeName(elementId);
         }
+        if (command.equals("location")) {
+            String elementId = fetchElementIdFromResponse(br);
+            return CommandBuilder.buildLocation(elementId);
+        }
+        if (command.equals("size")) {
+            String elementId = fetchElementIdFromResponse(br);
+            return CommandBuilder.buildSize(elementId);
+        }
         if (command.matches(REGEX_SESSION_UDID)) {
             if (requestType.equals("DELETE")) {
                 return CommandBuilder.buildDeleteSessionCommand();
