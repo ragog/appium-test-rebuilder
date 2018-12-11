@@ -224,7 +224,11 @@ public class CommandBuilder {
     }
 
     public static String buildClear(String elementId) {
-        return fetchElementName(elementId) + ".clear()";
+        return fetchElementName(elementId) + ".clear();";
+    }
+
+    public static String buildGetText(String elementId) {
+        return fetchElementName(elementId) + ".getText();";
     }
 
     public static String fetchElementName(String elementId) {

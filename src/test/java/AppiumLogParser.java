@@ -1,3 +1,6 @@
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -10,13 +13,15 @@ import java.util.regex.Pattern;
 
 public class AppiumLogParser {
 
-    private final String REGEX_ELEMENT_UDID = "\\b[0-9A-F]{8}\\b-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-\\b[0-9A-F]{12}\\b";
+    private final String REGEX_ELEMENT_UDID_IOS = "\\b[0-9A-F]{8}\\b-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-\\b[0-9A-F]{12}\\b";
     private final String REGEX_SESSION_UDID = "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b";
     private final String MARKER_REQUEST = "-->";
     private final String MARKER_RESPONSE = "<--";
     private final String RESPONSE_200 = "200";
+    private final String MARKER_FIND_ELEMENT_RESULT = "driver.findElement() result:"; // TODO get smarter please
 
     private boolean optionPrintRequests;
+    private String platform;
 
     public AppiumLogParser(HashMap<String, Boolean> options){
         optionPrintRequests = options.get("printRequests");
@@ -54,48 +59,24 @@ public class AppiumLogParser {
 
     }
 
-    public boolean isGetSessionCommand(String st) {
-        return (st.chars().filter(ch -> ch == '/').count() == 4);
-    }
-
-    public String getRequestType(String st) {
-        return st.substring(st.indexOf('>')+2, st.indexOf('/')-1); // TODO less hacky bitte
-    }
-
     public String consumeCommand(String command, String requestType, BufferedReader br) throws IOException {
 
         if (command.equals("element")) {
-            String elementId = "";
             String nextLine = br.readLine();
             String clippedNextLine = nextLine.replaceAll(".*] ", "");
-            while (!nextLine.contains(MARKER_RESPONSE)) {
-                if (nextLine.contains(RESPONSE_200)) {
-                    Pattern pattern = Pattern.compile(REGEX_ELEMENT_UDID);
-                    Matcher matcher = pattern.matcher(nextLine);
-                    if (matcher.find())
-                    {
-                        elementId = matcher.group(0);
-                    }
-                }
-                nextLine = br.readLine();
-            }
+
+            String elementId = platform.equalsIgnoreCase("android") ? elementFindAndroid(br) : elementFindIOS(br);
+
             return CommandBuilder.buildFindElement(clippedNextLine, elementId);
         }
 
         if (command.equals("elements")) {
-            List<String> elementIds = new ArrayList<>();
+            List<String> elementIds;
             String nextLine = br.readLine();
             String clippedNextLine = nextLine.replaceAll(".*] ", "");
-            while (!nextLine.contains(MARKER_RESPONSE)) {
-                if (nextLine.contains(RESPONSE_200)) {
-                    Pattern pattern = Pattern.compile(REGEX_ELEMENT_UDID);
-                    Matcher matcher = pattern.matcher(nextLine);
-                    while (matcher.find()) {
-                        elementIds.add(matcher.group(0));
-                    }
-                }
-                nextLine = br.readLine();
-            }
+
+            elementIds = platform.equalsIgnoreCase("android") ? elementsFindAndroid(br) : elementsFindIOS(br);
+
             return CommandBuilder.buildFindElements(clippedNextLine, elementIds);
         }
 
@@ -104,7 +85,7 @@ public class AppiumLogParser {
                 String nextLine = br.readLine();
                 String clippedNextLine = nextLine.replaceAll(".*] ", "");
 
-                String elementId = fetchElementIdFromResponse(br);
+                String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
                 return CommandBuilder.buildSendKeys(elementId, clippedNextLine);
             }
 
@@ -116,7 +97,7 @@ public class AppiumLogParser {
                 String nextLine = br.readLine();
                 String clippedNextLine = nextLine.replaceAll(".*] ", "");
 
-                String elementId = fetchElementIdFromResponse(br);
+                String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
                 return CommandBuilder.buildSendKeys(elementId, clippedNextLine);
             }
 
@@ -149,7 +130,7 @@ public class AppiumLogParser {
             }
         }
         if (command.equals("click")) {
-            String elementId = fetchElementIdFromResponse(br);
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildClickElement(elementId);
         }
         if (command.equals("screenshot")) {
@@ -167,27 +148,36 @@ public class AppiumLogParser {
         if (command.equals("session")) {
             String nextLine = br.readLine();
             String clippedNextLine = nextLine.replaceAll(".*] ", "");
+            JSONObject elementJSON = new JSONObject(clippedNextLine);
+            JSONObject innerJSONElement = elementJSON.getJSONObject("desiredCapabilities");
+            platform = (String)innerJSONElement.get("platformName");
             return CommandBuilder.buildInitSession(clippedNextLine);
         }
         if (command.equals("displayed")) {
-            String elementId = fetchElementIdFromResponse(br);
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildIsDisplayed(elementId);
         }
         if (command.equals("name")) {
-            String elementId = fetchElementIdFromResponse(br);
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildAttributeName(elementId);
         }
         if (command.equals("location")) {
-            String elementId = fetchElementIdFromResponse(br);
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildLocation(elementId);
         }
         if (command.equals("size")) {
-            String elementId = fetchElementIdFromResponse(br);
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildSize(elementId);
         }
         if (command.equals("clear")) {
-            String elementId = fetchElementIdFromResponse(br);
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildClear(elementId);
+        }
+        if (command.equals("text")) {
+            if (requestType.equals("GET")) {
+                String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
+                return CommandBuilder.buildGetText(elementId);
+            }
         }
         if (command.equals("perform")) {
             String nextLine = br.readLine();
@@ -203,14 +193,22 @@ public class AppiumLogParser {
         return "UnknownCommandPlaceholder";
     }
 
-    private String fetchElementIdFromResponse(BufferedReader br) throws IOException {
+    private boolean isGetSessionCommand(String st) {
+        return (st.chars().filter(ch -> ch == '/').count() == 4);
+    }
+
+    private String getRequestType(String st) {
+        return st.substring(st.indexOf('>')+2, st.indexOf('/')-1); // TODO less hacky bitte
+    }
+
+    private String fetchElementIdFromResponseIOS(BufferedReader br) throws IOException {
 
         String nextLine = br.readLine();
         while (!nextLine.contains(MARKER_RESPONSE)) {
             nextLine = br.readLine();
         }
 
-        Pattern pattern = Pattern.compile(REGEX_ELEMENT_UDID);
+        Pattern pattern = Pattern.compile(REGEX_ELEMENT_UDID_IOS);
         Matcher matcher = pattern.matcher(nextLine);
         String elementId = "";
         if (matcher.find()) {
@@ -218,4 +216,94 @@ public class AppiumLogParser {
         }
         return elementId;
     }
+
+    private String fetchElementIdFromResponseAndroid(BufferedReader br) throws IOException {
+
+        String elementId = "";
+        String nextLine = br.readLine();
+        String clippedLine = nextLine.substring(nextLine.indexOf('{'));
+
+        JSONObject jsonObject;
+        try {
+            jsonObject = new JSONObject(clippedLine);
+            elementId = (String)jsonObject.get("id");
+        } catch (JSONException obj) {
+            nextLine = br.readLine();
+            elementId = nextLine.substring(nextLine.indexOf('"')+1, nextLine.indexOf(',')-1); // TODO hacky...
+        }
+
+        return elementId;
+
+    }
+
+    private String elementFindIOS(BufferedReader br) throws IOException {
+        String elementId = "";
+        String nextLine = br.readLine();
+
+        while (!nextLine.contains(MARKER_RESPONSE)) {
+            if (nextLine.contains(RESPONSE_200)) {
+                Pattern pattern = Pattern.compile(REGEX_ELEMENT_UDID_IOS);
+                Matcher matcher = pattern.matcher(nextLine);
+                if (matcher.find())
+                {
+                    elementId = matcher.group(0);
+                }
+            }
+            nextLine = br.readLine();
+        }
+        return elementId;
+    }
+
+    private ArrayList<String> elementsFindIOS(BufferedReader br) throws IOException {
+        ArrayList<String> elementIds = new ArrayList<>();
+
+        String nextLine = br.readLine();
+        while (!nextLine.contains(MARKER_RESPONSE)) {
+            if (nextLine.contains(RESPONSE_200)) {
+                Pattern pattern = Pattern.compile(REGEX_ELEMENT_UDID_IOS);
+                Matcher matcher = pattern.matcher(nextLine);
+                while (matcher.find()) {
+                    elementIds.add(matcher.group(0));
+                }
+            }
+            nextLine = br.readLine();
+        }
+        return elementIds;
+    }
+
+    private String elementFindAndroid(BufferedReader br) throws IOException {
+
+        String elementId = "";
+        String nextLine = br.readLine();
+
+        while (!nextLine.contains(MARKER_RESPONSE)) {
+            if (nextLine.contains(MARKER_FIND_ELEMENT_RESULT)) {
+                String clippedLine = nextLine.substring(nextLine.indexOf('{'));
+
+                JSONObject jsonObject = new JSONObject(clippedLine);
+
+                return (String)jsonObject.get("ELEMENT");
+            }
+            nextLine = br.readLine();
+        }
+        return elementId;
+    }
+
+    private ArrayList<String> elementsFindAndroid(BufferedReader br) throws IOException { // TODO test for /elements
+        ArrayList<String> elementIds = new ArrayList<>();
+
+        String nextLine = br.readLine();
+        while (!nextLine.contains(MARKER_RESPONSE)) {
+            if (nextLine.contains(MARKER_FIND_ELEMENT_RESULT)) {
+                String clippedLine = nextLine.substring(nextLine.indexOf('{'));
+
+                JSONObject jsonObject = new JSONObject(clippedLine);
+
+                elementIds.add((String)jsonObject.get("ELEMENT")); // TODO wrong, fix
+            }
+            nextLine = br.readLine();
+        }
+        return elementIds;
+    }
+
 }

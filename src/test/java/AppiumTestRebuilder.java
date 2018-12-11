@@ -10,7 +10,8 @@ public class AppiumTestRebuilder {
         boolean optionPrintToFile;
 
         // Target logfile
-        File logFile = new File("log.txt");
+        File logFile = new File("log-calc.txt");
+//        File logFile = new File("log.txt");
 
         HashMap<String, Boolean> options = new HashMap<>();
         options.put("printRequests", true);
