@@ -1,3 +1,5 @@
+package com.saucelabs;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,8 +12,9 @@ public class AppiumTestRebuilder {
         boolean optionPrintToFile;
 
         // Target logfile
-        File logFile = new File("log-calc.txt");
+//        File logFile = new File("log-wiki.txt");
 //        File logFile = new File("log.txt");
+        File logFile = new File("log-calc.txt");
 
         HashMap<String, Boolean> options = new HashMap<>();
         options.put("printRequests", true);

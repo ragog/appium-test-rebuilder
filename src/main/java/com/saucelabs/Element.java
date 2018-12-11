@@ -1,3 +1,5 @@
+package com.saucelabs;
+
 public class Element {
 
     private String id;

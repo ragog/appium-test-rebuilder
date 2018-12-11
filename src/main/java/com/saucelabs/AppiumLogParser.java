@@ -1,3 +1,5 @@
+package com.saucelabs;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -84,8 +86,8 @@ public class AppiumLogParser {
             if (requestType.equals("POST")) {
                 String nextLine = br.readLine();
                 String clippedNextLine = nextLine.replaceAll(".*] ", "");
+                String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br, nextLine) : fetchElementIdFromResponseIOS(br);
 
-                String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
                 return CommandBuilder.buildSendKeys(elementId, clippedNextLine);
             }
 
@@ -96,8 +98,7 @@ public class AppiumLogParser {
             if (requestType.equals("POST")) {
                 String nextLine = br.readLine();
                 String clippedNextLine = nextLine.replaceAll(".*] ", "");
-
-                String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
+                String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br, nextLine) : fetchElementIdFromResponseIOS(br);
                 return CommandBuilder.buildSendKeys(elementId, clippedNextLine);
             }
 
@@ -130,7 +131,8 @@ public class AppiumLogParser {
             }
         }
         if (command.equals("click")) {
-            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
+            String nextLine = br.readLine();
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br, nextLine) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildClickElement(elementId);
         }
         if (command.equals("screenshot")) {
@@ -154,28 +156,34 @@ public class AppiumLogParser {
             return CommandBuilder.buildInitSession(clippedNextLine);
         }
         if (command.equals("displayed")) {
-            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
+            String nextLine = br.readLine();
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br, nextLine) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildIsDisplayed(elementId);
         }
         if (command.equals("name")) {
-            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
+            String nextLine = br.readLine();
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br, nextLine) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildAttributeName(elementId);
         }
         if (command.equals("location")) {
-            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
+            String nextLine = br.readLine();
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br, nextLine) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildLocation(elementId);
         }
         if (command.equals("size")) {
-            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
+            String nextLine = br.readLine();
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br, nextLine) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildSize(elementId);
         }
         if (command.equals("clear")) {
-            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
+            String nextLine = br.readLine();
+            String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br, nextLine) : fetchElementIdFromResponseIOS(br);
             return CommandBuilder.buildClear(elementId);
         }
         if (command.equals("text")) {
             if (requestType.equals("GET")) {
-                String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br) : fetchElementIdFromResponseIOS(br);
+                String nextLine = br.readLine();
+                String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br, nextLine) : fetchElementIdFromResponseIOS(br);
                 return CommandBuilder.buildGetText(elementId);
             }
         }
@@ -217,18 +225,17 @@ public class AppiumLogParser {
         return elementId;
     }
 
-    private String fetchElementIdFromResponseAndroid(BufferedReader br) throws IOException {
+    private String fetchElementIdFromResponseAndroid(BufferedReader br, String currentLine) throws IOException {
 
         String elementId = "";
-        String nextLine = br.readLine();
-        String clippedLine = nextLine.substring(nextLine.indexOf('{'));
+        String clippedLine = currentLine.substring(currentLine.indexOf('{'));
 
         JSONObject jsonObject;
         try {
             jsonObject = new JSONObject(clippedLine);
             elementId = (String)jsonObject.get("id");
         } catch (JSONException obj) {
-            nextLine = br.readLine();
+            String nextLine = br.readLine();
             elementId = nextLine.substring(nextLine.indexOf('"')+1, nextLine.indexOf(',')-1); // TODO hacky...
         }
 

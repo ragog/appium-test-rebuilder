@@ -1,3 +1,5 @@
+package com.saucelabs;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
