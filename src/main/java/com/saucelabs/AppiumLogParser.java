@@ -25,14 +25,16 @@ public class AppiumLogParser {
     private boolean optionPrintRequests;
     private String platform;
 
+    private ArrayList<String> commands = new ArrayList<>();
+    private ArrayList<String> requests = new ArrayList<>();
+
     public AppiumLogParser(HashMap<String, Boolean> options){
         optionPrintRequests = options.get("printRequests");
     }
 
-    public ArrayList<String> extractCommands(File logFile) throws IOException {
+    public ArrayList<String> parseLog(File logFile) throws IOException {
 
         BufferedReader br = new BufferedReader(new FileReader(logFile));
-        ArrayList<String> commands = new ArrayList<>();
 
         String st;
         while ((st = br.readLine()) != null) {
@@ -46,7 +48,7 @@ public class AppiumLogParser {
                     String command = st.substring(st.lastIndexOf('/') + 1);
 
                     if (optionPrintRequests) {
-                        System.out.println(st);
+                        requests.add(st);
                     }
 
                     String convertedCommand = consumeCommand(command, requestType, br);
@@ -59,6 +61,14 @@ public class AppiumLogParser {
 
         return commands;
 
+    }
+
+    public ArrayList<String> getCommands() {
+        return commands;
+    }
+
+    public ArrayList<String> getRequests() {
+        return requests;
     }
 
     public String consumeCommand(String command, String requestType, BufferedReader br) throws IOException {
