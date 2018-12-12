@@ -117,7 +117,7 @@ public class CommandBuilder {
         String elementName = fetchElementName(elementId);
 
         if (!elementName.isEmpty()) {
-            return elementName + ".sendKeys(" + value + ");";
+            return elementName + ".sendKeys(\"" + value + "\");";
         }
 
         int elementIndex = -1;
