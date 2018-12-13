@@ -31,8 +31,11 @@ public class CommandBuilder {
             Element element = new Element(elementId, elementName, strategy, value);
             elementList.add(element);
 
-            if (strategy.equals("class name")) { // one-off to take care of the selector TODO check for other selectors too
+            if (strategy.equals("class name")) {
                 strategy = "className";
+            }
+            if (strategy.equals("css selector")) {
+                strategy = "cssSelector";
             }
 
             return "MobileElement " + element.getName() + " = driver.findElement(By." + strategy + "(\"" + value + "\"));";
@@ -46,11 +49,16 @@ public class CommandBuilder {
             }
         }
 
+        // TODO duplicated code
+
         Element element = new Element(elementId, elementName, strategy, value);
         elementList.add(element);
 
         if (strategy.equals("class name")) {
             strategy = "className";
+        }
+        if (strategy.equals("css selector")) {
+            strategy = "cssSelector";
         }
 
         return "MobileElement " + element.getName() + " = driver.findElement(By." + strategy + "(\"" + value + "\"));";
