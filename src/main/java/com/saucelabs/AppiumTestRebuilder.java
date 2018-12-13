@@ -1,5 +1,6 @@
 package com.saucelabs;
 
+import com.beust.jcommander.JCommander;
 import com.saucelabs.util.Strings;
 
 import java.io.File;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 
 public class AppiumTestRebuilder {
 
+    private static String logPath;
     private static ArrayList<String> commands;
     private static ArrayList<String> requests;
     private static boolean optionPrintToFile = true;
@@ -20,7 +22,16 @@ public class AppiumTestRebuilder {
 
     public static void main(String args[]) throws IOException {
 
-        File logFile = new File("log-calc2.txt");
+        Arguments arguments = new Arguments();
+
+        JCommander.newBuilder()
+                .addObject(arguments)
+                .build()
+                .parse(args);
+
+        logPath = arguments.logPath;
+
+        File logFile = new File(logPath);
 
         HashMap<String, Boolean> options = new HashMap<>();
         options.put("printRequests", true);
