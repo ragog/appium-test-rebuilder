@@ -20,7 +20,7 @@ public class AppiumTestRebuilder {
 
     public static void main(String args[]) throws IOException {
 
-        File logFile = new File("log.txt");
+        File logFile = new File("log-calc2.txt");
 
         HashMap<String, Boolean> options = new HashMap<>();
         options.put("printRequests", true);

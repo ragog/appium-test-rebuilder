@@ -1,5 +1,6 @@
 package com.saucelabs;
 
+import com.saucelabs.util.Strings;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -176,9 +177,9 @@ public class CommandBuilder {
         }
 
         if (platform.equalsIgnoreCase("android")) {
-            command = capabilities + "AndroidDriver driver = new AndroidDriver(url, desiredCapabilities);"; // TODO URL
+            command = capabilities + Strings.DRIVER_INIT_ANDROID;
         } else if (platform.equalsIgnoreCase("ios")) {
-            command = capabilities + "IOSDriver driver = new IOSDriver(url, desiredCapabilities);"; // TODO URL
+            command = capabilities + Strings.DRIVER_INIT_IOS;
         }
 
         return command;
