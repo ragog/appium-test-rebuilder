@@ -55,7 +55,7 @@ public class AppiumTestRebuilder {
     }
 
     public static void printToFile() throws IOException {
-        Path file = Paths.get("test-rebuilder-output.txt");
+        Path file = Paths.get("test-rebuilt-from-" + logPath);
         if (optionPrintRequests) {
             requests.add(Strings.DISCLAIMER);
             requests.add(Strings.SEPARATOR_BODY);
