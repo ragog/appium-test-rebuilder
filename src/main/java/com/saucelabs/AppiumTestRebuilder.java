@@ -2,6 +2,7 @@ package com.saucelabs;
 
 import com.beust.jcommander.JCommander;
 import com.saucelabs.util.Strings;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,8 +20,8 @@ public class AppiumTestRebuilder {
     private static ArrayList<String> requests;
 
     // Options to modify output
-    private static boolean optionPrintToFile = true;
-    private static boolean optionPrintRequests = true;
+    private static boolean optionPrintToFile;
+    private static boolean optionPrintRequests;
 
     public static void main(String args[]) throws IOException {
 
@@ -36,8 +37,14 @@ public class AppiumTestRebuilder {
         logPath = arguments.logPath;
         File logFile = new File(logPath);
 
+        boolean envPrintToFile = Boolean.parseBoolean(System.getProperty("optionPrintToFile"));
+        boolean envPrintRequests = Boolean.parseBoolean(System.getProperty("optionPrintRequests"));
+
+        optionPrintToFile = !envPrintToFile ? arguments.printToFile : envPrintToFile;
+        optionPrintRequests = !envPrintRequests ? arguments.printRequests : envPrintRequests;
+
         HashMap<String, Boolean> options = new HashMap<>();
-        options.put("printRequests", true);
+        options.put("printRequests", optionPrintRequests);
 
         AppiumLogParser logParser = new AppiumLogParser(options);
         logParser.parseLog(logFile);
