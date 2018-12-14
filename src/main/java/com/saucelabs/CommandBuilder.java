@@ -19,37 +19,16 @@ public class CommandBuilder {
         String strategy = (String)elementJSON.get("using");
         String value = (String)elementJSON.get("value");
 
-        if (!elementList.isEmpty()) {
-
-            for (Element element : elementList) {
-                if (element.getId().equals(elementId)) {
-                    return element.getName() + " = driver.findElement(By." + strategy + "(\"" + value + "\");";
-                }
-            }
-
-            String elementName = "element" + elementList.size();
-            Element element = new Element(elementId, elementName, strategy, value);
-            elementList.add(element);
-
-            if (strategy.equals("class name")) {
-                strategy = "className";
-            }
-            if (strategy.equals("css selector")) {
-                strategy = "cssSelector";
-            }
-
-            return "MobileElement " + element.getName() + " = driver.findElement(By." + strategy + "(\"" + value + "\"));";
-
+        String existingName = fetchElementName(elementId);
+        String elementType;
+        String elementName;
+        if (existingName.isEmpty()) {
+             elementType = "MobileElement ";
+             elementName = "element" + elementList.size();
+        } else {
+            elementType = "";
+            elementName = existingName;
         }
-
-        String elementName = "element"+elementList.size();
-        for (Element element : elementList) {
-            if (element.getId().equals(elementId)) {
-                elementName = element.getName();
-            }
-        }
-
-        // TODO duplicated code
 
         Element element = new Element(elementId, elementName, strategy, value);
         elementList.add(element);
@@ -61,7 +40,8 @@ public class CommandBuilder {
             strategy = "cssSelector";
         }
 
-        return "MobileElement " + element.getName() + " = driver.findElement(By." + strategy + "(\"" + value + "\"));";
+        return String.format("%s%s = driver.findElement(By.%s(\"%s\"));",
+                elementType, element.getName(), strategy, value);
 
     }
 

@@ -111,8 +111,6 @@ public class AppiumLogParser {
 
                 return CommandBuilder.buildSendKeys(elementId, clippedNextLine);
             }
-
-            // TODO GET
         }
 
         if (command.equals("keys")) { // TODO distinguish between sendkeys and setvalue
