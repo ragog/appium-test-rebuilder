@@ -52,7 +52,7 @@ public class CommandBuilder {
         String strategy = (String)jsonObject.get("using");
         String value = (String)jsonObject.get("value");
 
-        String elementName = "element" + elementList.size();
+        String elementName = "listElement" + elementsList.size();
 
         for (String elementId: elementIds) {
             for (Element element : elementList) {
@@ -67,7 +67,7 @@ public class CommandBuilder {
 
         elementsList.add(list);
 
-        return "ArrayList<MobileElement> list" + elementsList.size() + " = driver.findElements(By." + strategy + "(\"" + value + "\"));"; // TODO not finished - get references to elements in list
+        return "ArrayList<MobileElement> list" + elementsList.size() + " = driver.findElements(By." + strategy + "(\"" + value + "\"));";
 
     }
 
@@ -91,6 +91,10 @@ public class CommandBuilder {
 
         return "list" + elementsList.size() + ".get(" + elementIndex + ").click();";
 
+    }
+
+    public static String buildSetUrl(String url) {
+        return "driver.get(\"" + url + "\");";
     }
 
     public static String buildSendKeys(String elementId, String rawCommandString){

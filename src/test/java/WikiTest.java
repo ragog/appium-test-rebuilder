@@ -12,7 +12,7 @@ public class WikiTest {
 
     @Test
     public void logTestNoUnrecognizedCommand() throws IOException {
-        ArrayList<String> list = new ArrayList<>(Arrays.asList("log.txt", "log-calc.txt", "log-wiki.txt")); // "log-kbc.txt",
+        ArrayList<String> list = new ArrayList<>(Arrays.asList("log.txt", "log-calc.txt", "log-wiki.txt", "log-kbc.txt"));
         for (String path : list) {
             AppiumTestRebuilder.main(new String[] { path });
             String content = new String(Files.readAllBytes(Paths.get("test-rebuilt-from-"+path)));

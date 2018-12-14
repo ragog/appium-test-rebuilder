@@ -84,6 +84,13 @@ public class AppiumLogParser {
             return CommandBuilder.buildInitSession(clippedNextLine);
         }
 
+        if (command.equals("url")) {
+            String nextLine = br.readLine();
+            String clippedNextLine = nextLine.replaceAll(".*] ", "");
+            JSONObject elementJSON = new JSONObject(clippedNextLine);
+            return CommandBuilder.buildSetUrl((String)elementJSON.get("url"));
+        }
+
         if (command.equals("element")) {
             String nextLine = br.readLine();
             String clippedNextLine = nextLine.replaceAll(".*] ", "");
