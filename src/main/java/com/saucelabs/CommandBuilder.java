@@ -1,23 +1,17 @@
 package com.saucelabs;
 
 import com.saucelabs.util.Strings;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CommandBuilder {
 
     private static ArrayList<Element> elementList = new ArrayList<>();
     private static ArrayList<ArrayList<Element>> elementsList = new ArrayList<>();
 
-    public static String buildFindElement(String rawCommandString, String elementId) {
-
-        JSONObject elementJSON = new JSONObject(rawCommandString);
-        String strategy = (String)elementJSON.get("using");
-        String value = (String)elementJSON.get("value");
+    public static String buildFindElement(String strategy, String value, String elementId) {
 
         String existingName = fetchElementName(elementId);
         String elementType;
@@ -45,12 +39,8 @@ public class CommandBuilder {
 
     }
 
-    public static String buildFindElements(String rawCommandString, List<String> elementIds) {
+    public static String buildFindElements(String strategy, String value, List<String> elementIds) {
         ArrayList<Element> list = new ArrayList<>();
-
-        JSONObject jsonObject = new JSONObject(rawCommandString);
-        String strategy = (String)jsonObject.get("using");
-        String value = (String)jsonObject.get("value");
 
         String elementName = "listElement" + elementsList.size();
 
@@ -97,11 +87,11 @@ public class CommandBuilder {
         return "driver.get(\"" + url + "\");";
     }
 
-    public static String buildSendKeys(String elementId, String rawCommandString){
+    public static String buildGetUrl() {
+        return "driver.getCurrentUrl();";
+    }
 
-        JSONObject elementJSON = new JSONObject(rawCommandString);
-        JSONArray values = (JSONArray)elementJSON.get("value");
-        String value = (String)values.get(0);
+    public static String buildSendKeys(String elementId, String value){
 
         if (elementId.isEmpty()) {
             return "// sendKeys(\""+ value + "\"); on unknown element";
@@ -154,17 +144,14 @@ public class CommandBuilder {
         return "driver.getScreenshotAs(OutputType.BASE64);";
     }
 
-    public static String buildInitSession(String rawCommandString) {
-        JSONObject elementJSON = new JSONObject(rawCommandString);
-        JSONObject innerJSONElement = elementJSON.getJSONObject("desiredCapabilities");
-        String platform = (String)innerJSONElement.get("platformName");
+    public static String buildInitSession(HashMap<String, Object> capMap, String platform) {
+
         String command = "";
 
-        Map<String, Object> jsonMap = innerJSONElement.toMap();
         String capabilities = "DesiredCapabilities desiredCapabilities = new DesiredCapabilities();\n";
 
-        for (String key : jsonMap.keySet()) {
-            String value = jsonMap.get(key).toString();
+        for (String key : capMap.keySet()) {
+            String value = capMap.get(key).toString();
             capabilities += "desiredCapabilities.setCapability(\"" + key + "\", \"" + value +"\");\n";
         }
 
@@ -177,23 +164,18 @@ public class CommandBuilder {
         return command;
     }
 
-    public static String buildTimeouts(String rawCommandString) {
-        JSONObject elementJSON = new JSONObject(rawCommandString);
-        int ms = (int)elementJSON.get("ms");
+    public static String buildTimeouts(long ms) {
         return "driver.manage().timeouts().implicitlyWait("+ ms +", TimeUnit.MILLISECONDS);";
     }
 
-    public static String buildTouchActionPerform(String rawCommandString) {
-        JSONObject jsonObject = new JSONObject(rawCommandString);
-        JSONArray jsonArray = jsonObject.getJSONArray("actions");
-        JSONObject action = (JSONObject)jsonArray.get(0);
-        String actionField = (String)action.get("action");
+    public static String buildTouchActionPerform(String actionField, HashMap<String, Object> optionMap) {
+
         if (!actionField.equals("tap")) {
-            return ""; // TODO handle all actions in chain + support all types of action
+            return Strings.PLACEHOLDER_UNIMPLEMENTED;
         }
-        JSONObject optionsField = (JSONObject)action.get("options");
-        int coordinateX = (int)optionsField.get("x");
-        int coordinateY = (int)optionsField.get("y");
+
+        int coordinateX = (int)optionMap.get("x");
+        int coordinateY = (int)optionMap.get("y");
 
         return "new TouchAction(driver).tap(new PointOption().withCoordinates("+coordinateX+", "+coordinateY+"));";
     }

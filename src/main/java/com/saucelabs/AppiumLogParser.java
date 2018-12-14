@@ -1,6 +1,7 @@
 package com.saucelabs;
 
 import com.saucelabs.util.Strings;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -80,15 +81,24 @@ public class AppiumLogParser {
             String clippedNextLine = nextLine.replaceAll(".*] ", "");
             JSONObject elementJSON = new JSONObject(clippedNextLine);
             JSONObject innerJSONElement = elementJSON.getJSONObject("desiredCapabilities");
-            platform = (String)innerJSONElement.get("platformName");
-            return CommandBuilder.buildInitSession(clippedNextLine);
+
+            HashMap capMap = (HashMap)innerJSONElement.toMap();
+
+            platform = (String)capMap.get("platformName");
+
+            return CommandBuilder.buildInitSession(capMap, platform);
         }
 
         if (command.equals("url")) {
-            String nextLine = br.readLine();
-            String clippedNextLine = nextLine.replaceAll(".*] ", "");
-            JSONObject elementJSON = new JSONObject(clippedNextLine);
-            return CommandBuilder.buildSetUrl((String)elementJSON.get("url"));
+            if (requestType.equals("POST")) {
+                String nextLine = br.readLine();
+                String clippedNextLine = nextLine.replaceAll(".*] ", "");
+                JSONObject elementJSON = new JSONObject(clippedNextLine);
+                return CommandBuilder.buildSetUrl((String)elementJSON.get("url"));
+            }
+            if (requestType.equals("GET")) {
+                return CommandBuilder.buildGetUrl();
+            }
         }
 
         if (command.equals("element")) {
@@ -97,7 +107,11 @@ public class AppiumLogParser {
 
             String elementId = platform.equalsIgnoreCase("android") ? genericElementIdFindAndroid(br) : genericElementIdFindIOS(br);
 
-            return CommandBuilder.buildFindElement(clippedNextLine, elementId);
+            JSONObject elementJSON = new JSONObject(clippedNextLine);
+            String strategy = (String)elementJSON.get("using");
+            String value = (String)elementJSON.get("value");
+
+            return CommandBuilder.buildFindElement(strategy, value, elementId);
         }
 
         if (command.equals("elements")) {
@@ -107,7 +121,11 @@ public class AppiumLogParser {
 
             elementIds = platform.equalsIgnoreCase("android") ? genericElementsIdFindAndroid(br) : genericElementsIdFindIOS(br);
 
-            return CommandBuilder.buildFindElements(clippedNextLine, elementIds);
+            JSONObject jsonObject = new JSONObject(clippedNextLine);
+            String strategy = (String)jsonObject.get("using");
+            String value = (String)jsonObject.get("value");
+
+            return CommandBuilder.buildFindElements(strategy, value, elementIds);
         }
 
         if (command.equals("value")) {
@@ -116,7 +134,11 @@ public class AppiumLogParser {
                 String clippedNextLine = nextLine.replaceAll(".*] ", "");
                 String elementId = fetchElementIdFromRequest(requestString);
 
-                return CommandBuilder.buildSendKeys(elementId, clippedNextLine);
+                JSONObject elementJSON = new JSONObject(clippedNextLine);
+                JSONArray values = (JSONArray)elementJSON.get("value");
+                String value = (String)values.get(0);
+
+                return CommandBuilder.buildSendKeys(elementId, value);
             }
         }
 
@@ -168,7 +190,11 @@ public class AppiumLogParser {
             if (requestType.equals("POST")) {
                 String nextLine = br.readLine();
                 String clippedNextLine = nextLine.replaceAll(".*] ", "");
-                return CommandBuilder.buildTimeouts(clippedNextLine);
+
+                JSONObject elementJSON = new JSONObject(clippedNextLine);
+                int ms = (int)elementJSON.get("ms");
+
+                return CommandBuilder.buildTimeouts(ms);
             }
         }
         if (command.equals("displayed")) {
@@ -201,14 +227,25 @@ public class AppiumLogParser {
             String nextLine = br.readLine();
             String clippedNextLine = nextLine.replaceAll(".*] ", "");
 
-            return CommandBuilder.buildTouchActionPerform(clippedNextLine);
+            JSONObject jsonObject = new JSONObject(clippedNextLine);
+            JSONArray jsonArray = jsonObject.getJSONArray("actions");
+            JSONObject action = (JSONObject)jsonArray.get(0);
+            String actionField = (String)action.get("action");
+
+            if (!actionField.equals("tap")) {
+                return "UnimplementedTouchActionPlaceholder"; // TODO handle all actions in chain + support all types of action
+            }
+            JSONObject optionsField = (JSONObject)action.get("options");
+            HashMap<String, Object> optionMap = (HashMap<String, Object>) optionsField.toMap();
+
+            return CommandBuilder.buildTouchActionPerform(actionField, optionMap);
         }
         if (command.matches(REGEX_SESSION_UDID)) {
             if (requestType.equals("DELETE")) {
                 return CommandBuilder.buildDeleteSessionCommand();
             }
         }
-        return Strings.UNKNOWN_COMMAND;
+        return Strings.PLACEHOLDER_UNKNOWN;
     }
 
     private boolean isGetSessionCommand(String st) {
