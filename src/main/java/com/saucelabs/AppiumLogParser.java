@@ -1,5 +1,6 @@
 package com.saucelabs;
 
+import com.saucelabs.util.Strings;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -74,11 +75,20 @@ public class AppiumLogParser {
 
         String command = requestString.substring(requestString.lastIndexOf('/') + 1);
 
+        if (command.equals("session")) {
+            String nextLine = br.readLine();
+            String clippedNextLine = nextLine.replaceAll(".*] ", "");
+            JSONObject elementJSON = new JSONObject(clippedNextLine);
+            JSONObject innerJSONElement = elementJSON.getJSONObject("desiredCapabilities");
+            platform = (String)innerJSONElement.get("platformName");
+            return CommandBuilder.buildInitSession(clippedNextLine);
+        }
+
         if (command.equals("element")) {
             String nextLine = br.readLine();
             String clippedNextLine = nextLine.replaceAll(".*] ", "");
 
-            String elementId = platform.equalsIgnoreCase("android") ? elementFindAndroid(br) : elementFindIOS(br);
+            String elementId = platform.equalsIgnoreCase("android") ? genericElementIdFindAndroid(br) : genericElementIdFindIOS(br);
 
             return CommandBuilder.buildFindElement(clippedNextLine, elementId);
         }
@@ -88,7 +98,7 @@ public class AppiumLogParser {
             String nextLine = br.readLine();
             String clippedNextLine = nextLine.replaceAll(".*] ", "");
 
-            elementIds = platform.equalsIgnoreCase("android") ? elementsFindAndroid(br) : elementsFindIOS(br);
+            elementIds = platform.equalsIgnoreCase("android") ? genericElementsIdFindAndroid(br) : genericElementsIdFindIOS(br);
 
             return CommandBuilder.buildFindElements(clippedNextLine, elementIds);
         }
@@ -112,7 +122,6 @@ public class AppiumLogParser {
                 String elementId = platform.equalsIgnoreCase("android") ? fetchElementIdFromResponseAndroid(br, nextLine) : fetchElementIdFromResponseIOS(br);
                 return CommandBuilder.buildSendKeys(elementId, clippedNextLine);
             }
-
         }
 
         if (command.equals("context")) {
@@ -157,14 +166,6 @@ public class AppiumLogParser {
                 return CommandBuilder.buildTimeouts(clippedNextLine);
             }
         }
-        if (command.equals("session")) {
-            String nextLine = br.readLine();
-            String clippedNextLine = nextLine.replaceAll(".*] ", "");
-            JSONObject elementJSON = new JSONObject(clippedNextLine);
-            JSONObject innerJSONElement = elementJSON.getJSONObject("desiredCapabilities");
-            platform = (String)innerJSONElement.get("platformName");
-            return CommandBuilder.buildInitSession(clippedNextLine);
-        }
         if (command.equals("displayed")) {
             String elementId = fetchElementIdFromRequest(requestString);
             return CommandBuilder.buildIsDisplayed(elementId);
@@ -202,7 +203,7 @@ public class AppiumLogParser {
                 return CommandBuilder.buildDeleteSessionCommand();
             }
         }
-        return "UnknownCommandPlaceholder";
+        return Strings.UNKNOWN_COMMAND;
     }
 
     private boolean isGetSessionCommand(String st) {
@@ -247,7 +248,7 @@ public class AppiumLogParser {
 
     }
 
-    private String elementFindIOS(BufferedReader br) throws IOException {
+    private String genericElementIdFindIOS(BufferedReader br) throws IOException {
         String elementId = "";
         String nextLine = br.readLine();
 
@@ -265,7 +266,7 @@ public class AppiumLogParser {
         return elementId;
     }
 
-    private ArrayList<String> elementsFindIOS(BufferedReader br) throws IOException {
+    private ArrayList<String> genericElementsIdFindIOS(BufferedReader br) throws IOException {
         ArrayList<String> elementIds = new ArrayList<>();
 
         String nextLine = br.readLine();
@@ -282,7 +283,7 @@ public class AppiumLogParser {
         return elementIds;
     }
 
-    private String elementFindAndroid(BufferedReader br) throws IOException {
+    private String genericElementIdFindAndroid(BufferedReader br) throws IOException {
 
         String elementId = "";
         String nextLine = br.readLine();
@@ -315,7 +316,7 @@ public class AppiumLogParser {
         return clippedString.replaceAll("/.*", "");
     }
 
-    private ArrayList<String> elementsFindAndroid(BufferedReader br) throws IOException { // TODO test for /elements
+    private ArrayList<String> genericElementsIdFindAndroid(BufferedReader br) throws IOException { // TODO test for /elements
         ArrayList<String> elementIds = new ArrayList<>();
 
         String nextLine = br.readLine();

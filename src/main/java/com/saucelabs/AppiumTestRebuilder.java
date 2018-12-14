@@ -17,11 +17,14 @@ public class AppiumTestRebuilder {
     private static String logPath;
     private static ArrayList<String> commands;
     private static ArrayList<String> requests;
+
+    // Options to modify output
     private static boolean optionPrintToFile = true;
     private static boolean optionPrintRequests = true;
 
     public static void main(String args[]) throws IOException {
 
+        // Parse command line arguments
         Arguments arguments = new Arguments();
 
         JCommander.newBuilder()
@@ -29,8 +32,8 @@ public class AppiumTestRebuilder {
                 .build()
                 .parse(args);
 
+        // Target logs to generate script from
         logPath = arguments.logPath;
-
         File logFile = new File(logPath);
 
         HashMap<String, Boolean> options = new HashMap<>();
@@ -42,6 +45,7 @@ public class AppiumTestRebuilder {
         commands = logParser.getCommands();
         requests = logParser.getRequests();
 
+        // Actual output
         if (optionPrintToFile) {
             printToFile();
         } else {

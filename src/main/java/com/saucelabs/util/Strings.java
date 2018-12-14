@@ -5,4 +5,5 @@ public class Strings {
     public final static String SEPARATOR_BODY = "\n---------------------- Generated Test Body --------------------\n";
     public final static String DRIVER_INIT_ANDROID = "AndroidDriver<MobileElement> driver = new AndroidDriver<MobileElement>(url, desiredCapabilities);";
     public final static String DRIVER_INIT_IOS = "IOSDriver driver<MobileElement> = new IOSDriver<MobileElement>(url, desiredCapabilities);";
+    public final static String UNKNOWN_COMMAND = "UnknownCommandPlaceholder";
 }
